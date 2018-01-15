@@ -6,6 +6,7 @@ package com.example.dev.chatapplication;
 
 public class Message {
     private String content, userName;
+    private long date;
 
     public Message() {
     }
@@ -29,5 +30,13 @@ public class Message {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public long getDate() {
+        return date;
+    }
+
+    public void setDate(long date) {
+        this.date = date;
     }
 }

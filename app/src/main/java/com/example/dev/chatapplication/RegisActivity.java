@@ -28,6 +28,7 @@ public class RegisActivity extends AppCompatActivity implements View.OnClickList
     private Button btnReg, btnLogin;
     private DatabaseReference databaseReference;
     private FirebaseAuth firebaseAuth;
+    public static String userNa="";
 
 
     @Override
@@ -53,6 +54,7 @@ public class RegisActivity extends AppCompatActivity implements View.OnClickList
             user = edtUser.getText().toString().trim();
             pass = edtPass.getText().toString().trim();
             email = edtEmail.getText().toString().trim();
+            userNa=user;
             if (!TextUtils.isEmpty(email) && !TextUtils.isEmpty(user) && !TextUtils.isEmpty(pass)) {
                 firebaseAuth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
@@ -61,6 +63,7 @@ public class RegisActivity extends AppCompatActivity implements View.OnClickList
                             String userId = firebaseAuth.getCurrentUser().getUid();
                             DatabaseReference currentUserId = databaseReference.child(userId);
                             currentUserId.child("Name").setValue(user);
+                            Toast.makeText(RegisActivity.this, "Successfully registration", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(RegisActivity.this, LoginActivity.class));
                             finish();
                         }
@@ -70,7 +73,7 @@ public class RegisActivity extends AppCompatActivity implements View.OnClickList
 
         }
         if (view.getId() == R.id.btnLogin) {
-            Toast.makeText(RegisActivity.this, "click login", Toast.LENGTH_SHORT).show();
+
             startActivity(new Intent(RegisActivity.this, LoginActivity.class));
             finish();
         }

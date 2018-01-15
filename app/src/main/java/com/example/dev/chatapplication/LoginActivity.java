@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -69,6 +70,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.hasChild(userId)) {
                     startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    Toast.makeText(LoginActivity.this, "successfully login" , Toast.LENGTH_SHORT).show();
                     finish();
                 }
             }
