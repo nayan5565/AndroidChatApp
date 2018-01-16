@@ -27,6 +27,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -80,6 +81,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         };
+
+        FirebaseDatabase.getInstance().getReference().child("message").addChildEventListener(new ChildEventListener() {
+
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Log.e("FIREBASE","added:"+s);
+                recMessage.scrollToPosition(recMessage.getAdapter().getItemCount() - 1);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Log.e("FIREBASE","changed:"+s);
+                recMessage.scrollToPosition(recMessage.getAdapter().getItemCount() - 1);
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Log.e("FIREBASE","remmoved");
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                Log.e("FIREBASE","Moved");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("FIREBASE","onCancelled");
+            }
+        });
     }
 
     @Override
@@ -87,12 +118,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (view.getId() == R.id.fab) {
             currentUser = firebaseAuth.getCurrentUser();
             databaseUsers = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid());
+
+
             final String messageValue = edtMessage.getText().toString().trim();
             if (!TextUtils.isEmpty(messageValue)) {
                 final DatabaseReference newPost = databaseReference.push();
                 databaseUsers.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
+
                         recMessage.scrollToPosition(recMessage.getAdapter().getItemCount() - 1);
                         newPost.child("content").setValue(messageValue);
                         newPost.child("userName").setValue(dataSnapshot.child("Name").getValue()).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -136,6 +170,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ) {
             @Override
             protected void populateViewHolder(MessageViewHolder viewHolder, Message model, int position) {
+                Log.e("VH"," data "+model.getContent());
                 String user = name;
                 if (user.equals(name)) {
                     viewHolder.setContent(model.getContent(), "");
@@ -154,13 +189,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         };
         recMessage.setAdapter(firebaseRecyclerAdapter);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                firebaseRecyclerAdapter.notifyDataSetChanged();
-                recMessage.scrollToPosition(recMessage.getAdapter().getItemCount() - 1);
-            }
-        }, 100);
+//        new Handler().postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                firebaseRecyclerAdapter.notifyDataSetChanged();
+//                recMessage.scrollToPosition(recMessage.getAdapter().getItemCount() - 1);
+//            }
+//        }, 100);
 
     }
 
