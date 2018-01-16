@@ -49,6 +49,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         String email, pass;
         email = edtEmail.getText().toString().trim();
         pass = edtPass.getText().toString().trim();
+        MainActivity.name = email;
         if (!TextUtils.isEmpty(email) && !TextUtils.isEmpty(pass)) {
             firebaseAuth.signInWithEmailAndPassword(email, pass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
@@ -70,7 +71,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.hasChild(userId)) {
                     startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                    Toast.makeText(LoginActivity.this, "successfully login" , Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "successfully login", Toast.LENGTH_SHORT).show();
                     finish();
                 }
             }

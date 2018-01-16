@@ -61,6 +61,7 @@ public class RegisActivity extends AppCompatActivity implements View.OnClickList
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             String userId = firebaseAuth.getCurrentUser().getUid();
+
                             DatabaseReference currentUserId = databaseReference.child(userId);
                             currentUserId.child("Name").setValue(user);
                             Toast.makeText(RegisActivity.this, "Successfully registration", Toast.LENGTH_SHORT).show();
