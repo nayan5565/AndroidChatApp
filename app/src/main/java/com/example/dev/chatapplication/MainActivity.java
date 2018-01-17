@@ -2,6 +2,8 @@ package com.example.dev.chatapplication;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -12,12 +14,15 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,7 +40,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -49,6 +58,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FirebaseUser currentUser;
     private FloatingActionButton fab;
     public static String name = "";
+    public static String userName = "good";
+    public static String userName2 = "";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,31 +98,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Log.e("FIREBASE","added:"+s);
+                Log.e("FIREBASE", "added:" + dataSnapshot.child("Name").getValue());
+
                 recMessage.scrollToPosition(recMessage.getAdapter().getItemCount() - 1);
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Log.e("FIREBASE","changed:"+s);
+                Log.e("FIREBASE", "changed:" + s);
                 recMessage.scrollToPosition(recMessage.getAdapter().getItemCount() - 1);
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.e("FIREBASE","remmoved");
+                Log.e("FIREBASE", "remmoved");
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                Log.e("FIREBASE","Moved");
+                Log.e("FIREBASE", "Moved");
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.e("FIREBASE","onCancelled");
+                Log.e("FIREBASE", "onCancelled");
             }
         });
+
+
     }
 
     @Override
@@ -125,15 +140,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 final DatabaseReference newPost = databaseReference.push();
                 databaseUsers.addValueEventListener(new ValueEventListener() {
                     @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
+                    public void onDataChange(final DataSnapshot dataSnapshot) {
 
-                        recMessage.scrollToPosition(recMessage.getAdapter().getItemCount() - 1);
                         newPost.child("content").setValue(messageValue);
                         newPost.child("userName").setValue(dataSnapshot.child("Name").getValue()).addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
 
+                                    userName = dataSnapshot.child("Name").getValue() + "";
+                                    Utils.savePref("userName", userName);
+                                    Log.e("userName", userName + " is " + dataSnapshot.child("Name").getValue());
                                     edtMessage.setText("");
                                     recMessage.scrollToPosition(recMessage.getAdapter().getItemCount() - 1);
                                 }
@@ -150,10 +167,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
             }
+
         }
 
 
     }
+
 
     private String getToday() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
@@ -170,39 +189,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ) {
             @Override
             protected void populateViewHolder(MessageViewHolder viewHolder, Message model, int position) {
-                Log.e("VH"," data "+model.getContent());
-                String user = name;
-                if (user.equals(name)) {
-                    viewHolder.setContent(model.getContent(), "");
-                    viewHolder.setUserName(model.getUserName(), "");
-                    viewHolder.setDate(getToday(), "");
-                    viewHolder.tvUserName.setTextColor(Color.RED);
-//                    viewHolder.addMessageBox("You:-\n" +model.getContent(), model.getUserName(), getToday(), 1, MainActivity.this);
-                } else {
-                    viewHolder.tvUserName.setTextColor(Color.GREEN);
-                    viewHolder.setContent("", model.getContent());
-                    viewHolder.setUserName("", model.getUserName());
-                    viewHolder.setDate("", getToday());
-//                    viewHolder.addMessageBox("with:-\n" + model.getContent(), model.getUserName(), getToday(), 2, MainActivity.this);
-                }
+                userName2 = Utils.getPref("userName", "well");
+                Log.e("VH", " data " + userName2 + model.getContent());
+//                if (userName.equals("nan")) {
+//                    viewHolder.setContent(model.getContent(), "");
+//                }
+//                else {
+//                    viewHolder.setContent("", model.getContent());
+//                }
+//
+//                viewHolder.setUserName(model.getUserName());
+//                viewHolder.setDate(getToday(), "");
 
+//                viewHolder.addMessageBox(model.getContent(), model.getUserName(), getToday(), MainActivity.this);
+
+                viewHolder.setData(model.getUserName(), getToday(), model.getContent());
             }
         };
         recMessage.setAdapter(firebaseRecyclerAdapter);
-//        new Handler().postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                firebaseRecyclerAdapter.notifyDataSetChanged();
-//                recMessage.scrollToPosition(recMessage.getAdapter().getItemCount() - 1);
-//            }
-//        }, 100);
 
     }
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         View view;
-        TextView tvUserName, tvUserName2;
-        public LinearLayout layout;
+
+        private LinearLayout lnUser, lnChatWith, layout;
+
+        private TextView message, message2, tvDate, tvDate2, tvName, tvName2;
+
 
         public MessageViewHolder(View itemView) {
             super(itemView);
@@ -211,18 +225,68 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         public void setContent(String content, String content2) {
-            TextView message = (TextView) view.findViewById(R.id.tvMessage);
-            TextView message2 = (TextView) view.findViewById(R.id.tvMessage2);
+            message = (TextView) view.findViewById(R.id.tvMessage);
+            message2 = (TextView) view.findViewById(R.id.tvMessage2);
             message.setText(content);
             message2.setText(content2);
         }
 
-        public void setUserName(String userName, String userName2) {
-            tvUserName = (TextView) view.findViewById(R.id.tvUserName);
-            tvUserName2 = (TextView) view.findViewById(R.id.tvUserName2);
+        public void setData(String Name, String date, String sms) {
+            lnUser = (LinearLayout) view.findViewById(R.id.lnUser);
+            lnChatWith = (LinearLayout) view.findViewById(R.id.lnWithChat);
+            message = (TextView) view.findViewById(R.id.tvMessage);
+            message2 = (TextView) view.findViewById(R.id.tvMessage2);
+            tvDate = (TextView) view.findViewById(R.id.tvDate);
+            tvDate2 = (TextView) view.findViewById(R.id.tvDate2);
+            tvName = (TextView) view.findViewById(R.id.tvUserName);
+            tvName2 = (TextView) view.findViewById(R.id.tvUserName2);
+            userName2 = Utils.getPref("userName", "well");
+            tvName.setText(Name);
+
+            Log.e("data ", " name " + Name+" "+" "+sms+" " + userName2);
+//            if (!Name.equals("null")) {
+                if (Name.equals(userName2)) {
+
+                    message.setText(sms);
+                    tvName.setText(Name);
+                    tvDate.setText(date);
+                    tvDate.setTextColor(Color.RED);
+                    message2.setText("");
+                    tvName2.setText("");
+                    tvDate2.setText("");
+                    lnChatWith.setBackgroundColor(Color.TRANSPARENT);
+                    lnUser.setBackgroundResource(R.drawable.message_shape);
+
+
+                } else {
+
+                    message2.setText(sms);
+                    tvName2.setText(Name);
+                    tvDate2.setText(date);
+                    message.setText("");
+                    tvName.setText("");
+                    tvDate.setText("");
+                    tvDate.setTextColor(Color.YELLOW);
+                    lnUser.setBackgroundColor(Color.TRANSPARENT);
+                    lnChatWith.setBackgroundResource(R.drawable.message_shape2);
+                }
+//            }
+
+
+        }
+
+
+        public void setUserName(String userName) {
+            TextView tvUserName = (TextView) view.findViewById(R.id.tvUserName);
 
             tvUserName.setText(userName);
-            tvUserName2.setText(userName2);
+            if (userName.equals("nan")) {
+                tvUserName.setTextColor(Color.RED);
+            } else {
+                if (!tvUserName.getText().toString().isEmpty()) {
+                    tvUserName.setTextColor(Color.GREEN);
+                }
+            }
         }
 
         public void setDate(String date, String date4) {
@@ -232,8 +296,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             date3.setText(date4);
         }
 
-        public void addMessageBox(String message, String user, String date, int type, Context context) {
-            layout = (LinearLayout) view.findViewById(R.id.layout);
+        public void addMessageBox(String message, String user, String date, Context context) {
+
             TextView textView = new TextView(context);
             TextView textView2 = new TextView(context);
             TextView textView3 = new TextView(context);
@@ -244,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             lp2.weight = 1.0f;
 
-            if (type == 1) {
+            if (user.equals("nan")) {
                 lp2.gravity = Gravity.RIGHT;
 //                textView.setBackgroundResource(R.drawable.bubble_in);
             } else {
@@ -260,6 +324,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //            scrollView.fullScroll(View.FOCUS_DOWN);
         }
     }
-
-
 }
+
+
+
+
+
+
