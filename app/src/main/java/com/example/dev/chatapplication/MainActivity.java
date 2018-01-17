@@ -46,6 +46,7 @@ import java.util.HashMap;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private EditText edtMessage;
@@ -66,7 +67,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        userName2 = Utils.getPref("userName", "well");
+        Log.e("oncreate", " name " + userName2);
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(this);
         edtMessage = (EditText) findViewById(R.id.edtMessage);
@@ -149,7 +151,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 if (task.isSuccessful()) {
 
                                     userName = dataSnapshot.child("Name").getValue() + "";
-                                    Utils.savePref("userName", userName);
+
+                                    if (userName2.equals("well"))
+                                        Utils.savePref("userName", userName);
                                     Log.e("userName", userName + " is " + dataSnapshot.child("Name").getValue());
                                     edtMessage.setText("");
                                     recMessage.scrollToPosition(recMessage.getAdapter().getItemCount() - 1);
@@ -174,12 +178,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private String getToday() {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
-        String day = sdf.format(new Date());
-        return day;
-    }
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -203,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //                viewHolder.addMessageBox(model.getContent(), model.getUserName(), getToday(), MainActivity.this);
 
-                viewHolder.setData(model.getUserName(), getToday(), model.getContent());
+                viewHolder.setData(model.getUserName(), Utils.getToday(), model.getContent());
             }
         };
         recMessage.setAdapter(firebaseRecyclerAdapter);
@@ -243,33 +241,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             userName2 = Utils.getPref("userName", "well");
             tvName.setText(Name);
 
-            Log.e("data ", " name " + Name+" "+" "+sms+" " + userName2);
+            Log.e("data ", " name " + Name + " " + " " + sms + " " + userName2);
 //            if (!Name.equals("null")) {
-                if (Name.equals(userName2)) {
+            if (Name.equals(userName2)) {
 
-                    message.setText(sms);
-                    tvName.setText(Name);
-                    tvDate.setText(date);
-                    tvDate.setTextColor(Color.RED);
-                    message2.setText("");
-                    tvName2.setText("");
-                    tvDate2.setText("");
-                    lnChatWith.setBackgroundColor(Color.TRANSPARENT);
-                    lnUser.setBackgroundResource(R.drawable.message_shape);
+                message.setText(sms);
+                tvName.setText(Name);
+                tvDate.setText(date);
+                tvDate.setTextColor(Color.RED);
+                message2.setText("");
+                tvName2.setText("");
+                tvDate2.setText("");
+                lnChatWith.setBackgroundColor(Color.TRANSPARENT);
+                lnUser.setBackgroundResource(R.drawable.message_shape);
 
 
-                } else {
+            } else {
 
-                    message2.setText(sms);
-                    tvName2.setText(Name);
-                    tvDate2.setText(date);
-                    message.setText("");
-                    tvName.setText("");
-                    tvDate.setText("");
-                    tvDate.setTextColor(Color.YELLOW);
-                    lnUser.setBackgroundColor(Color.TRANSPARENT);
-                    lnChatWith.setBackgroundResource(R.drawable.message_shape2);
-                }
+                message2.setText(sms);
+                tvName2.setText(Name);
+                tvDate2.setText(date);
+                message.setText("");
+                tvName.setText("");
+                tvDate.setText("");
+                tvDate.setTextColor(Color.YELLOW);
+                lnUser.setBackgroundColor(Color.TRANSPARENT);
+                lnChatWith.setBackgroundResource(R.drawable.message_shape2);
+            }
 //            }
 
 

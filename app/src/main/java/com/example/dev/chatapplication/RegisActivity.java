@@ -54,6 +54,7 @@ public class RegisActivity extends AppCompatActivity implements View.OnClickList
             user = edtUser.getText().toString().trim();
             pass = edtPass.getText().toString().trim();
             email = edtEmail.getText().toString().trim();
+            Utils.savePref("userName", user);
             userNa=user;
             if (!TextUtils.isEmpty(email) && !TextUtils.isEmpty(user) && !TextUtils.isEmpty(pass)) {
                 firebaseAuth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
